@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap to Earn NAIRA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            text-align: center;
+            color: white;
+        }
+        .container, .withdraw-section, .balance-container, #app {
+            display: none;
+        }
+        .login-container {
+            margin-top: 100px;
+            display: block;
+        }
+        .input-field {
+            padding: 10px;
+            margin: 5px;
+            width: 80%;
+            border: none;
+            border-radius: 5px;
+        }
+        .tap-button {
+            width: 100px;
+            height: 100px;
+            background-color: gold;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .withdraw-section {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .withdraw-button {
+            padding: 10px;
+            background: green;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Section -->
+    <div class="login-container" id="login-container">
+        <h2>Login</h2>
+        <input type="text" id="phone" class="input-field" placeholder="Phone Number">
+        <input type="password" id="password" class="input-field" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- App Section -->
+    <div id="app">
+        <div class="balance-container">
+            <div>Remaining to Tap: <span id="remainingToTap">1000000</span> NAIRA</div>
+            <div>Balance: <span id="balance">0</span> NAIRA</div>
+        </div>
+
+        <div class="container">
+            <button class="tap-button" onclick="tap()">NAIRA</button>
+        </div>
+
+        <!-- Withdrawal Section -->
+        <div class="withdraw-section">
+            <h3>Withdraw Funds</h3>
+            <input type="text" id="bank" class="input-field" placeholder="Bank">
+            <input type="text" id="accountNumber" class="input-field" placeholder="Account Number">
+            <input type="text" id="accountName" class="input-field" placeholder="Account Name">
+            <input type="number" id="withdrawAmount" class="input-field" placeholder="Amount (NAIRA)">
+            <button class="withdraw-button" onclick="withdraw()">Withdraw</button>
+
+            <!-- Withdrawal History -->
+            <h3>Withdrawal History</h3>
+            <div id="withdrawal-history"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load user balance and remaining taps
+        let balance = parseFloat(localStorage.getItem("balance")) || 0;
+        let remainingToTap = parseFloat(localStorage.getItem("remainingToTap")) || 1000000;
+        let withdrawals = JSON.parse(localStorage.getItem("withdrawals")) || [];
+
+        document.getElementById("balance").innerText = balance.toFixed(2);
+        document.getElementById("remainingToTap").innerText = remainingToTap.toFixed(2);
+        updateWithdrawalHistory();
+
+        function login() {
+            let phone = document.getElementById("phone").value;
+            let password = document.getElementById("password").value;
+
+            if (phone === "" || password === "") {
+                alert("Please enter your phone number and password.");
+                return;
+            }
+
+            localStorage.setItem("userPhone", phone);
+            document.getElementById("login-container").style.display = "none";
+            document.getElementById("app").style.display = "block";
+        }
+
+        function tap() {
+            if (remainingToTap <= 0) {
+                alert("You have reached the tapping limit!");
+                return;
+            }
+
+            balance += 0.01;
+            remainingToTap -= 0.01;
+
+            localStorage.setItem("balance", balance);
+            localStorage.setItem("remainingToTap", remainingToTap);
+
+            document.getElementById("balance").innerText = balance.toFixed(2);
+            document.getElementById("remainingToTap").innerText = remainingToTap.toFixed(2);
+        }
+
+        function withdraw() {
+            let bank = document.getElementById("bank").value;
+            let accountNumber = document.getElementById("accountNumber").value;
+            let accountName = document.getElementById("accountName").value;
+            let amount = parseFloat(document.getElementById("withdrawAmount").value);
+
+            if (amount < 200) {
+                alert("Minimum withdrawal is 200 NAIRA");
+                return;
+            }
+            if (amount > balance) {
+                alert("Insufficient balance");
+                return;
+            }
+
+            // Deduct balance
+            balance -= amount;
+            localStorage.setItem("balance", balance);
+            document.getElementById("balance").innerText = balance.toFixed(2);
+
+            // Save withdrawal history
+            let withdrawal = {
+                bank,
+                accountNumber,
+                accountName,
+                amount
+            };
+            withdrawals.push(withdrawal);
+            localStorage.setItem("withdrawals", JSON.stringify(withdrawals));
+            updateWithdrawalHistory();
+
+            // Withdrawal success message
+            alert("Withdrawal ☎️ Placed Successfully ✅. Withdrawal will be paid within 10hrs-24hrs, pls be patient.\nContact 09012799868 on WhatsApp and send screenshots of your withdrawal to him. If not, you will not be paid.");
+        }
+
+        function updateWithdrawalHistory() {
+            let historyDiv = document.getElementById("withdrawal-history");
+            historyDiv.innerHTML = "";
+
+            withdrawals.forEach((w, index) => {
+                historyDiv.innerHTML += `<p>${index + 1}. ${w.bank}, ${w.accountNumber}, ${w.accountName}, ${w.amount} NAIRA</p>`;
+            });
+        }
+    </script>
+
+</body>
+</html>
